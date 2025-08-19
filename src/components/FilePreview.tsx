@@ -79,14 +79,18 @@ export default function FilePreview({ file, onClose }: FilePreviewProps) {
 
         try {
           // First, try to get public URL
-          const { data, error } = supabase.storage
+          const { data } = supabase.storage
             .from(STORAGE_BUCKET)
             .getPublicUrl(file.path);
 
-          if (error) {
-            console.error("Error getting PDF public URL:", error);
-            throw error;
+          if (!data.publicUrl) {
+            console.error(
+              "Error getting PDF public URL: No publicUrl returned"
+            );
+            throw new Error("Error getting PDF public URL");
           }
+
+          console.log("PDF public URL data:", data);
 
           console.log("PDF public URL data:", data);
 
