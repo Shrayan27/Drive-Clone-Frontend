@@ -34,13 +34,12 @@ export default function FilePreview({ file, onClose }: FilePreviewProps) {
 
       if (file.type.startsWith("image/")) {
         // For images, get the public URL
-        const { data, error } = supabase.storage
+        const { data } = supabase.storage
           .from(STORAGE_BUCKET)
           .getPublicUrl(file.path);
 
-        if (error) {
-          console.error("Error getting public URL:", error);
-          throw error;
+        if (!data.publicUrl) {
+          throw new Error("Error getting public URL");
         }
 
         console.log("Public URL data:", data);
