@@ -5,7 +5,7 @@ import {
   Image,
   FileText,
   FileSpreadsheet,
-  FilePresentation,
+  Presentation, // <-- use this instead of FilePresentation
   Archive,
 } from "lucide-react";
 
@@ -53,7 +53,7 @@ export function getFileIcon(
     mimeType.includes("powerpoint") ||
     mimeType.includes("presentation")
   ) {
-    return <FilePresentation className={className} />;
+    return <Presentation className={className} />;
   } else if (
     mimeType.includes("zip") ||
     mimeType.includes("rar") ||
