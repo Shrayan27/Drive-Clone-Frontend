@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Star, Zap } from "lucide-react";
 import { PREMIUM_PLANS } from "@/config/stripe";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
 
 interface PremiumPlansProps {
   onClose: () => void;
@@ -22,8 +23,13 @@ export default function PremiumPlans({ onClose }: PremiumPlansProps) {
     setLoading(planId);
 
     try {
-      // Get the user's ID token for authentication
-      const authToken = await user.getIdToken();
+      // Get the user's session for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
+      if (!authToken) {
+        throw new Error("No authentication token available");
+      }
 
       const response = await fetch("/api/create-checkout-session", {
         method: "POST",
@@ -33,7 +39,7 @@ export default function PremiumPlans({ onClose }: PremiumPlansProps) {
         body: JSON.stringify({
           priceId: stripePriceId,
           planId,
-          userId: user.uid,
+          userId: user.id,
           authToken,
         }),
       });

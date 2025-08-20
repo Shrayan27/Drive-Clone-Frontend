@@ -147,7 +147,7 @@ export default function RealTimeCollaboration({ fileId, className = '' }: RealTi
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">
-                        {user.displayName}
+                        {user.displayName || user.email}
                       </p>
                       <p className="text-xs text-gray-500 truncate">
                         {user.email}
@@ -170,7 +170,7 @@ export default function RealTimeCollaboration({ fileId, className = '' }: RealTi
                     const user = collaborationState.users.find(u => u.id === cursor.userId);
                     return (
                       <div key={cursor.userId} className="text-xs text-gray-600">
-                        {user?.displayName || 'Unknown user'}: ({cursor.x}, {cursor.y})
+                        {user?.displayName || user?.email || 'Unknown user'}: ({cursor.x}, {cursor.y})
                       </div>
                     );
                   })}

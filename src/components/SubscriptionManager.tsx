@@ -9,6 +9,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
 
 interface SubscriptionData {
   plan: string;
@@ -40,8 +41,14 @@ export default function SubscriptionManager() {
       setLoading(true);
       setError(null);
 
-      const authToken = await user.getIdToken();
-      const response = await fetch(`/api/stripe/subscription/${user.uid}`, {
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
+      if (!authToken) {
+        throw new Error("No authentication token available");
+      }
+
+      const response = await fetch(`/api/stripe/subscription/${user.id}`, {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
@@ -74,10 +81,15 @@ export default function SubscriptionManager() {
 
     try {
       setCanceling(true);
-      const authToken = await user.getIdToken();
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
+      if (!authToken) {
+        throw new Error("No authentication token available");
+      }
 
       const response = await fetch(
-        `/api/stripe/subscription/${user.uid}/cancel`,
+        `/api/stripe/subscription/${user.id}/cancel`,
         {
           method: "POST",
           headers: {
@@ -112,10 +124,15 @@ export default function SubscriptionManager() {
 
     try {
       setReactivating(true);
-      const authToken = await user.getIdToken();
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token;
+
+      if (!authToken) {
+        throw new Error("No authentication token available");
+      }
 
       const response = await fetch(
-        `/api/stripe/subscription/${user.uid}/reactivate`,
+        `/api/stripe/subscription/${user.id}/reactivate`,
         {
           method: "POST",
           headers: {

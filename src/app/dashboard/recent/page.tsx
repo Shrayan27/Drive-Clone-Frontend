@@ -37,7 +37,7 @@ export default function RecentPage() {
                 <File className="h-5 w-5 text-white" />
               </div>
               <span className="text-sm font-medium text-gray-700">
-                {user?.displayName || user?.email}
+                {user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email}
               </span>
             </div>
             <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg">

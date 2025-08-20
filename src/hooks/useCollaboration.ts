@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import { useAuth } from "./useAuth";
+import { supabase } from "@/lib/supabase";
 
 interface CollaborationUser {
   id: string;
   email: string;
-  displayName: string;
+  displayName: string; // This will be derived from user_metadata
 }
 
 interface CursorPosition {
@@ -45,7 +46,15 @@ export const useCollaboration = (fileId?: string) => {
 
     const initializeSocket = async () => {
       try {
-        const token = await user.getIdToken();
+        // For Supabase, we can use the session access token
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        
+        if (!token) {
+          console.error("No access token available");
+          return;
+        }
+
         const socket = io(process.env.NEXT_PUBLIC_WEBSOCKET_URL, {
           auth: {
             token: token,
