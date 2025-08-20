@@ -1,34 +1,33 @@
 import { useState, useEffect } from "react";
-import {
-  signInWithPopup,
-  GoogleAuthProvider,
-  signOut as firebaseSignOut,
-  onAuthStateChanged,
-  User,
-} from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { User, Session } from "@supabase/supabase-js";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (user) => {
-        console.log("Auth state changed:", user ? "User signed in" : "No user");
-        setUser(user);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Auth state change error:", error);
-        setLoading(false);
-      }
-    );
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-    return () => unsubscribe();
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("Auth state changed:", session ? "User signed in" : "No user");
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const signInWithGoogle = async () => {
@@ -36,37 +35,23 @@ export function useAuth() {
       setLoading(true);
       console.log("Attempting Google sign-in...");
 
-      const provider = new GoogleAuthProvider();
-      // Add scopes if needed
-      provider.addScope("email");
-      provider.addScope("profile");
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
 
-      const result = await signInWithPopup(auth, provider);
-      console.log("Google sign-in successful:", result.user.email);
-
-      // Redirect to dashboard after successful sign in
-      router.push("/dashboard");
-      return result;
-    } catch (error: any) {
-      console.error("Google sign-in error:", error);
-
-      // Handle specific Firebase errors
-      if (error.code === "auth/configuration-not-found") {
-        console.error(
-          "Firebase configuration error - check if Google Auth is enabled in Firebase Console"
-        );
-        throw new Error(
-          "Authentication service not configured. Please contact support."
-        );
-      } else if (error.code === "auth/popup-closed-by-user") {
-        throw new Error("Sign-in was cancelled");
-      } else if (error.code === "auth/popup-blocked") {
-        throw new Error(
-          "Pop-up was blocked by browser. Please allow pop-ups for this site."
-        );
-      } else {
+      if (error) {
+        console.error("Google sign-in error:", error);
         throw new Error(error.message || "Failed to sign in with Google");
       }
+
+      console.log("Google sign-in successful:", data);
+      return data;
+    } catch (error: any) {
+      console.error("Google sign-in error:", error);
+      throw new Error(error.message || "Failed to sign in with Google");
     } finally {
       setLoading(false);
     }
@@ -75,7 +60,11 @@ export function useAuth() {
   const signOut = async () => {
     try {
       console.log("Signing out...");
-      await firebaseSignOut(auth);
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Sign out error:", error);
+        throw error;
+      }
       console.log("Sign out successful");
       router.push("/auth/login");
     } catch (error) {
@@ -85,6 +74,7 @@ export function useAuth() {
 
   return {
     user,
+    session,
     loading,
     signInWithGoogle,
     signOut,

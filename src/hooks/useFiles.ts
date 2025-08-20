@@ -29,11 +29,10 @@ export function useFiles() {
     try {
       setLoading(true);
 
-      // Get files from Supabase storage using base client
-      // Storage policies will handle authentication based on file path
+      // Get files from Supabase storage using authenticated client
       const { data: storageFiles, error: storageError } = await supabase.storage
         .from(STORAGE_BUCKET)
-        .list(`users/${user.uid}`, {
+        .list(`users/${user.id}`, {
           limit: 100,
           offset: 0,
         });
@@ -43,7 +42,7 @@ export function useFiles() {
         return;
       }
 
-      // Get file metadata from database (you can use Supabase database too)
+      // Get file metadata from storage
       const fileList: FileItem[] = storageFiles
         .filter((file) => file.name !== ".emptyFolderPlaceholder")
         .map((file) => ({
@@ -52,8 +51,8 @@ export function useFiles() {
           size: file.metadata?.size || 0,
           type: file.metadata?.mimetype || "application/octet-stream",
           url: "", // Will be generated when needed
-          path: `users/${user.uid}/${file.name}`,
-          userId: user.uid,
+          path: `users/${user.id}/${file.name}`,
+          userId: user.id,
           createdAt: new Date(file.created_at || Date.now()),
           updatedAt: new Date(file.updated_at || Date.now()),
         }));
@@ -65,10 +64,6 @@ export function useFiles() {
       setLoading(false);
     }
   }, [user]);
-
-  // For Firebase auth + Supabase storage, we need to use a different approach
-  // We'll use the base Supabase client but with proper storage policies
-  // that can identify Firebase users by their UID in the file path
 
   // Upload file to Supabase
   const uploadFile = async (file: File, folderPath: string = "") => {
@@ -84,10 +79,9 @@ export function useFiles() {
       const fileName = `${Date.now()}_${file.name}`;
       const filePath = folderPath
         ? `${folderPath}/${fileName}`
-        : `users/${user.uid}/${fileName}`;
+        : `users/${user.id}/${fileName}`;
 
-      // Upload to Supabase storage using base client
-      // Storage policies will handle authentication based on file path
+      // Upload to Supabase storage using authenticated client
       const { data, error } = await supabase.storage
         .from(STORAGE_BUCKET)
         .upload(filePath, file, {
@@ -122,8 +116,7 @@ export function useFiles() {
     if (!user) return;
 
     try {
-      // Delete from Supabase storage using base client
-      // Storage policies will handle authentication based on file path
+      // Delete from Supabase storage using authenticated client
       const { error } = await supabase.storage
         .from(STORAGE_BUCKET)
         .remove([filePath]);
