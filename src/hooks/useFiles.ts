@@ -75,11 +75,22 @@ export function useFiles() {
     try {
       setUploading(true);
 
+      // Debug: Check authentication status
+      console.log("User ID:", user.id);
+      console.log("User email:", user.email);
+      
+      // Check if we have a valid session
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log("Session exists:", !!session);
+      console.log("Access token exists:", !!session?.access_token);
+
       // Create unique filename
       const fileName = `${Date.now()}_${file.name}`;
       const filePath = folderPath
         ? `${folderPath}/${fileName}`
         : `users/${user.id}/${fileName}`;
+
+      console.log("Uploading to path:", filePath);
 
       // Upload to Supabase storage using authenticated client
       const { data, error } = await supabase.storage
@@ -91,6 +102,11 @@ export function useFiles() {
 
       if (error) {
         console.error("Supabase upload error:", error);
+        console.error("Error details:", {
+          message: error.message,
+          statusCode: error.statusCode,
+          error: error.error
+        });
         throw new Error(`Upload failed: ${error.message}`);
       }
 
