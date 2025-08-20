@@ -1,0 +1,22 @@
+# Secrets scanning configuration for client build
+[secrets_scanning]
+  # Enable secrets scanning
+  enabled = true
+  
+  # Omit build cache directories from scanning
+  omit_paths = [
+    ".netlify/.next/cache/",
+    ".next/cache/",
+    "node_modules/",
+    ".git/"
+  ]
+  
+  # Omit specific environment variables that are safe to expose (publishable keys)
+  # These are client-side environment variables that are intentionally public
+  omit_keys = [
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+    "NEXT_PUBLIC_SUPABASE_URL", 
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "NEXT_PUBLIC_GOOGLE_CLIENT_ID",
+    "NEXT_PUBLIC_APP_NAME"
+  ]
