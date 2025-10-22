@@ -103,9 +103,9 @@ export function useFiles() {
       if (error) {
         console.error("Supabase upload error:", error);
         console.error("Error details:", {
-          message: error.message,
-          statusCode: error.statusCode,
-          error: error.error
+        message: error.message,
+        statusCode: (error as any).statusCode,
+        error: error.message // Changed from error.error to error.message
         });
         throw new Error(`Upload failed: ${error.message}`);
       }

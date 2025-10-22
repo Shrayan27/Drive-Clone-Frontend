@@ -1,6 +1,11 @@
 {
-  "/not-found": "app/not-found.js",
-  "/page": "app/page.js",
+  "/_not-found": "app/_not-found.js",
+  "/api/create-checkout-session/route": "app/api/create-checkout-session/route.js",
   "/auth/login/page": "app/auth/login/page.js",
+  "/auth/signup/page": "app/auth/signup/page.js",
+  "/dashboard/recent/page": "app/dashboard/recent/page.js",
+  "/dashboard/search/page": "app/dashboard/search/page.js",
+  "/dashboard/trash/page": "app/dashboard/trash/page.js",
+  "/page": "app/page.js",
   "/dashboard/page": "app/dashboard/page.js"
 }
